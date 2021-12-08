@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import rospy
-from std_msgs.msg import String
 from miio import RoborockVacuum, VacuumStatus
 from robonomics_vacuum.msg import RoborockStatus
 from robonomics_vacuum.srv import Command

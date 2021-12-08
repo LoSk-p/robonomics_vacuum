@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from substrateinterface.base import Keypair
 import rospy
 import rospkg
 import typing as tp
@@ -9,8 +10,7 @@ from robonomics_vacuum.msg import RoborockStatus
 from miio import RoborockVacuum
 import os
 import datetime
-from robonomics_vacuum.utils import read_config
-from robonomics import RobonomicsControl
+from robonomics_vacuum.utils import read_config, get_keypair, robonomics_connect
 
 class ElementsMonitoring:
     def __init__(self) -> None:
@@ -22,7 +22,7 @@ class ElementsMonitoring:
             elements = {'number_cleaning': 0, 'elements': []}
             for element in self.default_elements['elements']:
                 elements['elements'].append({'name': element['name'], 'time_from_last_replace': 0})
-            self.rewrite_yaml(path="{self.path}/data/cleaning_info.yaml", data=elements)
+            self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
         rospy.Service("replace_element", Element, self.replace_element)
         # rospy.Subscriber("roborock_status", RoborockStatus, self.listener)
         address = rospy.get_param("~address")
@@ -43,8 +43,9 @@ class ElementsMonitoring:
 
     def send_message(self, element: str) -> None:
         rospy.loginfo(f"Creating datalog with message: \"You should replace element {element}\"")
-        robonomics = RobonomicsControl()
-        hash = robonomics.write_datalog(f"You should replace element {element}")
+        substrate = robonomics_connect()
+        keypair = get_keypair()
+        hash = write_datalog(substrate=substrate, keypair=keypair, data=f"You should replace element {element}")
         rospy.loginfo(f"Datalog created with hash: {hash}")
     
     def spin(self) -> None:
