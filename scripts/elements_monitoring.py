@@ -39,6 +39,7 @@ class ElementsMonitoring:
             if element['name'] == req.element:
                 element['time_from_last_replace'] = 0
         self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
+        return "OK"
 
     def send_message(self, element: str) -> None:
         rospy.loginfo(f"Creating datalog with message: \"You should replace element {element}\"")
