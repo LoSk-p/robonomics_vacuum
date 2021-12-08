@@ -1,0 +1,6 @@
+elements:
+- name: main_brush
+  time_from_last_replace: 18 # seconds
+- name: left_brush
+  time_from_last_replace: 49 # seconds
+number_cleaning: 45

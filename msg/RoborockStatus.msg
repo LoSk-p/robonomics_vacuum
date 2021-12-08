@@ -1,0 +1,13 @@
+int32 battery
+float32 clean_area
+string clean_time
+string error
+int32 fanspeed
+bool got_error
+bool in_segment_cleaning
+bool in_zone_cleaning
+bool is_on
+bool is_paused
+bool map
+string state
+int32 state_code

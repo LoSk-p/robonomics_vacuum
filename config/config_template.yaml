@@ -1,0 +1,6 @@
+robonomics_seed: ''
+elements:
+- name: main_brush
+  working_time: 0 # hours
+- name: left_brush
+  working_time: 0
