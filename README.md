@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- ROS Melodic (installation instructions [here](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
+- ROS [Melodic](http://wiki.ros.org/melodic/Installation/Ubuntu) or [Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)
 
 ## installation
 

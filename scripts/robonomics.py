@@ -3,7 +3,7 @@
 from substrateinterface import SubstrateInterface, Keypair
 import rospy
 import rospkg
-from utils import read_config
+from robonomics_vacuum.utils import read_config
 from robonomics_vacuum.srv import Command
 
 class RobonomicsControl:

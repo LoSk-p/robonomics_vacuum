@@ -9,7 +9,7 @@ from robonomics_vacuum.msg import RoborockStatus
 from miio import RoborockVacuum
 import os
 import datetime
-from utils import read_config
+from robonomics_vacuum.utils import read_config
 from robonomics import RobonomicsControl
 
 class ElementsMonitoring:

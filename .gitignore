@@ -1,3 +1,5 @@
 config/config.yaml
 data/cleaning_info.yaml
 .vscode
+scripts/__pycache__
+include/robonomics_vacuum/__pycache__
