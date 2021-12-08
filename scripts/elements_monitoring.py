@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
-from substrateinterface.base import Keypair
 import rospy
 import rospkg
 import typing as tp
 import yaml
 from robonomics_vacuum.srv import Element
-from robonomics_vacuum.msg import RoborockStatus
 from miio import RoborockVacuum
 import os
 import datetime
@@ -15,19 +13,20 @@ from robonomics_vacuum.utils import read_config, get_keypair, robonomics_connect
 class ElementsMonitoring:
     def __init__(self) -> None:
         rospy.init_node("elements_monitoring")
+        address = rospy.get_param("~address")
+        token = rospy.get_param("~token")
+        self.vacuum = RoborockVacuum(address, token)
+        history = self.vacuum.clean_history()
         rospack = rospkg.RosPack()
         self.path = rospack.get_path('robonomics_vacuum')
         self.default_elements = read_config(f"{self.path}/config/config.yaml")
         if not os.path.exists(f"{self.path}/data/cleaning_info.yaml"):
-            elements = {'number_cleaning': 0, 'elements': []}
+            elements = {'number_cleaning': history.count, 'elements': []}
             for element in self.default_elements['elements']:
                 elements['elements'].append({'name': element['name'], 'time_from_last_replace': 0})
             self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
         rospy.Service("replace_element", Element, self.replace_element)
         # rospy.Subscriber("roborock_status", RoborockStatus, self.listener)
-        address = rospy.get_param("~address")
-        token = rospy.get_param("~token")
-        self.vacuum = RoborockVacuum(address, token)
     
     def rewrite_yaml(self, path: str, data: tp.List) -> None:
         with open(path, 'w') as f:
