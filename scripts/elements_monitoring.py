@@ -8,7 +8,7 @@ from robonomics_vacuum.srv import Element
 from miio import RoborockVacuum
 import os
 import datetime
-from robonomics_vacuum.utils import read_config, get_keypair, robonomics_connect
+from robonomics_vacuum.utils import read_config, get_keypair, robonomics_connect, write_datalog
 
 class ElementsMonitoring:
     def __init__(self) -> None:
@@ -61,8 +61,7 @@ class ElementsMonitoring:
                     clean_time += clean.duration
                 elements = config
                 for element in elements['elements']:
-                    last_delta = datetime.timedelta(seconds=element['time_from_last_replace'])
-                    last_delta = last_delta.seconds
+                    last_delta = int(element['time_from_last_replace'])
                     last_delta += clean_time.seconds
                     element['time_from_last_replace'] = last_delta
                     for default_element in self.default_elements['elements']:

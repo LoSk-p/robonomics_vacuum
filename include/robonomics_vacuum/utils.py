@@ -6,7 +6,7 @@ from substrateinterface import SubstrateInterface, Keypair
 import rospkg
 import rospy
 
-def read_config(path: str) -> tp.List:
+def read_config(path: str) -> tp.Dict:
         with open(path) as f:
             config = yaml.safe_load(f)
         return config
