@@ -21,15 +21,15 @@ class RobonomicsControl:
         ch = self.substrate.get_chain_head()
         chain_events = self.substrate.get_events(ch)
         for ce in chain_events:
-            # if ce.value["event_id"] == "NewLaunch":
-            #     print(ce)
-            #     print(self.keypair.ss58_address)
+            if ce.value["event_id"] == "NewLaunch":
+                rospy.loginfo(ce.params[1]["value"])
+                rospy.loginfo(self.keypair.ss58_address)
             if ce.value["event_id"] == "NewLaunch" and ce.params[1]["value"] == self.keypair.ss58_address:
                 if ce.params[2]["value"] is True:
-                    print('"ON" launch command from employer')
+                    rospy.loginfo('"ON" launch command from employer')
                     self.start_cleaning()
                 elif ce.params[2]["value"] is False:
-                    print('"OFF" launch command from employer')
+                    rospy.loginfo('"OFF" launch command from employer')
                     self.pause_cleaning()
                     self.return_to_base()
 

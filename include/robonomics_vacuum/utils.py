@@ -40,7 +40,7 @@ def get_keypair() -> Keypair:
     path = rospack.get_path('robonomics_vacuum')
     config = read_config(f"{path}/config/config.yaml")
     mnemonic = config['robonomics_seed']
-    keypair = Keypair.create_from_mnemonic(mnemonic)
+    keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=32)
     return keypair
 
 def write_datalog(substrate: SubstrateInterface, keypair: Keypair, data: str) -> str:
