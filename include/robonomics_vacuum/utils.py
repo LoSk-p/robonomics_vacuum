@@ -44,6 +44,7 @@ def get_keypair() -> Keypair:
     return keypair
 
 def write_datalog(data: str) -> str:
+    rospy.loginfo(f"Got message to write datalog: {data}")
     substrate = robonomics_connect()
     keypair = get_keypair()
     try:
