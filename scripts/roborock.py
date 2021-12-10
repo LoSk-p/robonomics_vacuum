@@ -4,6 +4,7 @@ import rospy
 from miio import RoborockVacuum, VacuumStatus
 from robonomics_vacuum.msg import RoborockStatus
 from robonomics_vacuum.srv import Command
+from robonomics_vacuum.utils import write_datalog
 
 class Roborock:
     def __init__(self) -> None:
