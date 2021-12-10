@@ -21,7 +21,7 @@ class RobonomicsControl:
         rospy.Subscriber("datalog", String, self.write_datalog)
 
     def write_datalog(self, data) -> str:
-        rospy.loginfo(f"Got message to write datalog: {data}")
+        rospy.loginfo(f"Got message to write datalog: {data.data}")
         substrate = robonomics_connect()
         keypair = get_keypair()
         try:
@@ -29,7 +29,7 @@ class RobonomicsControl:
                 call_module="Datalog",
                 call_function="record",
                 call_params={
-                    'record': data
+                    'record': data.data
                 }
             )
             extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
