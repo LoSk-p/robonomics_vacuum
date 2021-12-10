@@ -19,8 +19,6 @@ class Roborock:
         self.vacuum = RoborockVacuum(address, token)
         self.last_state = "Charging"
         self.pub_datalog = rospy.Publisher("datalog", String, queue_size=10)
-        # rospy.wait_for_service("write_datalog")
-        # self.write_datalog = rospy.ServiceProxy("write_datalog", Element)
 
     def start_cleaning(self, req) -> bool:
         try:
@@ -99,7 +97,6 @@ class Roborock:
             status = self.vacuum.status()
             status_msg = self.get_msg_status(status)
             self.pub_state.publish(status_msg)
-            #rospy.loginfo(f"last state: {self.last_state}, current state: {status.state}")
             if self.last_state != status.state:
                 self.pub_datalog.publish(f"State changed from {self.last_state} to {status.state}")
                 self.last_state = status.state

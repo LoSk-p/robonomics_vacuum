@@ -1,6 +1,7 @@
 <launch>
 	<arg name="address" default="" />
     <arg name="token" default="" />
+    <arg name="config_name" default="" />
 
     <node ns="roborock" pkg="robonomics_vacuum" type="roborock.py" name="roborock_vacuum" respawn="true" output="screen">
         <param name="address" value="$(arg address)" />
@@ -10,6 +11,7 @@
     <node ns="roborock" pkg="robonomics_vacuum" type="elements_monitoring.py" name="elements_monitoring" respawn="true" output="screen">
         <param name="address" value="$(arg address)" />
         <param name="token" value="$(arg token)" />
+        <param name="config_name" value="$(arg config_name)" />
     </node>
 
     <node ns="roborock" pkg="robonomics_vacuum" type="robonomics.py" name="robonomics_control" respawn="true" output="screen">
