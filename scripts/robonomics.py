@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+from std_msgs.msg import String
 from robonomics_vacuum.srv import Command
 from robonomics_vacuum.srv import Element
 from robonomics_vacuum.utils import get_keypair, robonomics_connect
@@ -17,9 +18,10 @@ class RobonomicsControl:
         rospy.wait_for_service("return_to_base")
         self.return_to_base = rospy.ServiceProxy("return_to_base", Command)
         rospy.Service("write_datalog", Element, self.write_datalog)
+        rospy.Subscriber("datalog", String, self.write_datalog)
 
-    def write_datalog(self, req) -> str:
-        rospy.loginfo(f"Got message to write datalog: {req.element}")
+    def write_datalog(self, data) -> str:
+        rospy.loginfo(f"Got message to write datalog: {data}")
         substrate = robonomics_connect()
         keypair = get_keypair()
         try:
@@ -27,7 +29,7 @@ class RobonomicsControl:
                 call_module="Datalog",
                 call_function="record",
                 call_params={
-                    'record': req.element
+                    'record': data
                 }
             )
             extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)

@@ -5,6 +5,7 @@ import rospkg
 import typing as tp
 import yaml
 from robonomics_vacuum.srv import Element
+from std_msgs.msg import String
 from miio import RoborockVacuum
 import os
 import datetime
@@ -26,8 +27,9 @@ class ElementsMonitoring:
                 elements['elements'].append({'name': element['name'], 'time_from_last_replace': 0})
             self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
         rospy.Service("replace_element", Element, self.replace_element)
-        rospy.wait_for_service("write_datalog")
-        self.write_datalog = rospy.ServiceProxy("write_datalog", Element)
+        self.pub_datalog = rospy.Publisher("datalog", String, queue_size=10)
+        # rospy.wait_for_service("write_datalog")
+        # self.write_datalog = rospy.ServiceProxy("write_datalog", Element)
         # rospy.Subscriber("roborock_status", RoborockStatus, self.listener)
     
     def rewrite_yaml(self, path: str, data: tp.List) -> None:
@@ -45,7 +47,7 @@ class ElementsMonitoring:
 
     def send_message(self, element: str) -> None:
         rospy.loginfo(f"Creating datalog with message: \"You should replace element {element}\"")
-        self.write_datalog(data=f"You should replace element {element}")
+        self.pub_datalog.publish(data=f"You should replace element {element}")
     
     def spin(self) -> None:
         rate = rospy.Rate(1)
