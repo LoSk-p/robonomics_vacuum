@@ -16,7 +16,6 @@ class RobonomicsControl:
         rospy.wait_for_service("return_to_base")
         self.return_to_base = rospy.ServiceProxy("return_to_base", Command)
 
-
     def subscription_handler(self, obj, update_nr, subscription_id) -> None:
         ch = self.substrate.get_chain_head()
         chain_events = self.substrate.get_events(ch)

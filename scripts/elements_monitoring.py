@@ -8,7 +8,7 @@ from robonomics_vacuum.srv import Element
 from miio import RoborockVacuum
 import os
 import datetime
-from robonomics_vacuum.utils import read_config, get_keypair, robonomics_connect, write_datalog
+from robonomics_vacuum.utils import read_config, write_datalog
 
 class ElementsMonitoring:
     def __init__(self) -> None:
@@ -43,10 +43,7 @@ class ElementsMonitoring:
 
     def send_message(self, element: str) -> None:
         rospy.loginfo(f"Creating datalog with message: \"You should replace element {element}\"")
-        substrate = robonomics_connect()
-        keypair = get_keypair()
-        hash = write_datalog(substrate=substrate, keypair=keypair, data=f"You should replace element {element}")
-        rospy.loginfo(f"Datalog created with hash: {hash}")
+        write_datalog(data=f"You should replace element {element}")
     
     def spin(self) -> None:
         rate = rospy.Rate(1)

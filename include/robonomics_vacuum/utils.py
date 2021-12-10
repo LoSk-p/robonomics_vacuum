@@ -43,15 +43,21 @@ def get_keypair() -> Keypair:
     keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=32)
     return keypair
 
-def write_datalog(substrate: SubstrateInterface, keypair: Keypair, data: str) -> str:
-    call = substrate.compose_call(
-        call_module="Datalog",
-        call_function="record",
-        call_params={
-            'record': data
-        }
-    )
-    extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
-    receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
-    rospy.loginfo(f"Datalog created with extrinsic hash: {receipt.extrinsic_hash}")
-    return receipt.extrinsic_hash
+def write_datalog(data: str) -> str:
+    substrate = robonomics_connect()
+    keypair = get_keypair()
+    try:
+        call = substrate.compose_call(
+            call_module="Datalog",
+            call_function="record",
+            call_params={
+                'record': data
+            }
+        )
+        extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+        receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+        rospy.loginfo(f"Datalog created with extrinsic hash: {receipt.extrinsic_hash}")
+        return receipt.extrinsic_hash
+    except Exception as e:
+        rospy.loginfo(f"Can't send datalog with error {e}")
+        return "Failed sending datalog"
