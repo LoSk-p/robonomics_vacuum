@@ -2,6 +2,7 @@
 
 import rospy
 from robonomics_vacuum.srv import Command
+from robonomics_vacuum.srv import Element
 from robonomics_vacuum.utils import get_keypair, robonomics_connect
 
 class RobonomicsControl:
@@ -15,6 +16,27 @@ class RobonomicsControl:
         self.pause_cleaning = rospy.ServiceProxy("pause_cleaning", Command)
         rospy.wait_for_service("return_to_base")
         self.return_to_base = rospy.ServiceProxy("return_to_base", Command)
+        rospy.Service("write_datalog", Element, self.write_datalog)
+
+    def write_datalog(self, req) -> str:
+        rospy.loginfo(f"Got message to write datalog: {req.element}")
+        substrate = robonomics_connect()
+        keypair = get_keypair()
+        try:
+            call = substrate.compose_call(
+                call_module="Datalog",
+                call_function="record",
+                call_params={
+                    'record': req.element
+                }
+            )
+            extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            rospy.loginfo(f"Datalog created with extrinsic hash: {receipt.extrinsic_hash}")
+            return receipt.extrinsic_hash
+        except Exception as e:
+            rospy.loginfo(f"Can't send datalog with error {e}")
+            return "Failed sending datalog"
 
     def subscription_handler(self, obj, update_nr, subscription_id) -> None:
         ch = self.substrate.get_chain_head()

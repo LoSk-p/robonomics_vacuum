@@ -3,8 +3,7 @@
 import rospy
 from miio import RoborockVacuum, VacuumStatus
 from robonomics_vacuum.msg import RoborockStatus
-from robonomics_vacuum.srv import Command
-from robonomics_vacuum.utils import write_datalog
+from robonomics_vacuum.srv import Command, Element
 
 class Roborock:
     def __init__(self) -> None:
@@ -17,6 +16,8 @@ class Roborock:
         token = rospy.get_param("~token")
         self.vacuum = RoborockVacuum(address, token)
         self.last_state = "Charging"
+        rospy.wait_for_service("write_datalog")
+        self.write_datalog = rospy.ServiceProxy("write_datalog", Element)
 
     def start_cleaning(self, req) -> bool:
         try:
@@ -82,7 +83,7 @@ class Roborock:
             self.pub_state.publish(status_msg)
             rospy.loginfo(f"last state: {self.last_state}, current state: {status.state}")
             if self.last_state != status.state:
-                write_datalog(f"State changed from {self.last_state} to {status.state}")
+                self.write_datalog(f"State changed from {self.last_state} to {status.state}")
                 self.last_state = status.state
             rate.sleep()
 
