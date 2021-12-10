@@ -81,7 +81,7 @@ class Roborock:
             status = self.vacuum.status()
             status_msg = self.get_msg_status(status)
             self.pub_state.publish(status_msg)
-            rospy.loginfo(f"last state: {self.last_state}, current state: {status.state}")
+            #rospy.loginfo(f"last state: {self.last_state}, current state: {status.state}")
             if self.last_state != status.state:
                 self.write_datalog(f"State changed from {self.last_state} to {status.state}")
                 self.last_state = status.state
