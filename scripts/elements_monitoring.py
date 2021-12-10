@@ -1,78 +1,63 @@
 #!/usr/bin/env python3
 
 import rospy
-import rospkg
-import typing as tp
-import yaml
-from robonomics_vacuum.srv import Element
 from std_msgs.msg import String
-from miio import RoborockVacuum
-import os
-import datetime
-from robonomics_vacuum.utils import read_config
+from robonomics_vacuum.srv import Command
+from robonomics_vacuum.srv import Element
+from robonomics_vacuum.utils import get_keypair, robonomics_connect
 
-class ElementsMonitoring:
+class RobonomicsControl:
     def __init__(self) -> None:
-        rospy.init_node("elements_monitoring")
-        address = rospy.get_param("~address")
-        token = rospy.get_param("~token")
-        self.vacuum = RoborockVacuum(address, token)
-        history = self.vacuum.clean_history()
-        rospack = rospkg.RosPack()
-        self.path = rospack.get_path('robonomics_vacuum')
-        self.default_elements = read_config(f"{self.path}/config/config.yaml")
-        if not os.path.exists(f"{self.path}/data/cleaning_info.yaml"):
-            elements = {'number_cleaning': history.count, 'elements': []}
-            for element in self.default_elements['elements']:
-                elements['elements'].append({'name': element['name'], 'time_from_last_replace': 0})
-            self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
-        rospy.Service("replace_element", Element, self.replace_element)
-        self.pub_datalog = rospy.Publisher("datalog", String, queue_size=10)
-        # rospy.wait_for_service("write_datalog")
-        # self.write_datalog = rospy.ServiceProxy("write_datalog", Element)
-        # rospy.Subscriber("roborock_status", RoborockStatus, self.listener)
-    
-    def rewrite_yaml(self, path: str, data: tp.List) -> None:
-        with open(path, 'w') as f:
-            yaml.dump(data, f, default_flow_style=False)
+        self.substrate = robonomics_connect()
+        rospy.init_node("robonomics_control")
+        self.keypair = get_keypair()
+        rospy.wait_for_service("start_cleaning")
+        self.start_cleaning = rospy.ServiceProxy("start_cleaning", Command)
+        rospy.wait_for_service("pause_cleaning")
+        self.pause_cleaning = rospy.ServiceProxy("pause_cleaning", Command)
+        rospy.wait_for_service("return_to_base")
+        self.return_to_base = rospy.ServiceProxy("return_to_base", Command)
+        rospy.Service("write_datalog", Element, self.write_datalog)
+        rospy.Subscriber("datalog", String, self.write_datalog)
 
-    def replace_element(self, req) -> None:
-        rospy.loginfo(f"type req: {type(req)}")
-        elements = read_config(f"{self.path}/data/cleaning_info.yaml")
-        for element in elements['elements']:
-            if element['name'] == req.element:
-                element['time_from_last_replace'] = 0
-        self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
-        return "OK"
+    def write_datalog(self, data) -> str:
+        rospy.loginfo(f"Got message to write datalog: {data.data}")
+        substrate = robonomics_connect()
+        keypair = get_keypair()
+        try:
+            call = substrate.compose_call(
+                call_module="Datalog",
+                call_function="record",
+                call_params={
+                    'record': data.data
+                }
+            )
+            extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            rospy.loginfo(f"Datalog \"{data.data}\" created with extrinsic hash: {receipt.extrinsic_hash}")
+            return receipt.extrinsic_hash
+        except Exception as e:
+            rospy.loginfo(f"Can't send datalog \"{data.data}\" with error {e}")
+            return "Failed sending datalog"
 
-    def send_message(self, element: str) -> None:
-        rospy.loginfo(f"Creating datalog with message: \"You should replace element {element}\"")
-        self.pub_datalog.publish(data=f"You should replace element {element}")
-    
+    def subscription_handler(self, obj, update_nr, subscription_id) -> None:
+        ch = self.substrate.get_chain_head()
+        chain_events = self.substrate.get_events(ch)
+        for ce in chain_events:
+            # if ce.value["event_id"] == "NewLaunch":
+            #     rospy.loginfo(ce.params[1]["value"])
+            #     rospy.loginfo(self.keypair.ss58_address)
+            if ce.value["event_id"] == "NewLaunch" and ce.params[1]["value"] == self.keypair.ss58_address:
+                if ce.params[2]["value"] is True:
+                    rospy.loginfo('"ON" launch command from employer')
+                    self.start_cleaning()
+                elif ce.params[2]["value"] is False:
+                    rospy.loginfo('"OFF" launch command from employer')
+                    self.pause_cleaning()
+                    self.return_to_base()
+
     def spin(self) -> None:
-        rate = rospy.Rate(1)
-        while not rospy.is_shutdown():
-            rate.sleep()
-            history = self.vacuum.clean_history()
-            config = read_config(f"{self.path}/data/cleaning_info.yaml")
-            clean_time = datetime.timedelta(hours=0, minutes=0, seconds=0)
-            if history.count > config['number_cleaning']: 
-                for i in range(history.count - config['number_cleaning']):
-                    clean = self.vacuum.clean_details(history.ids[-1-i])
-                    clean_time += clean.duration
-                elements = config
-                for element in elements['elements']:
-                    last_delta = int(element['time_from_last_replace'])
-                    last_delta += clean_time.seconds
-                    element['time_from_last_replace'] = last_delta
-                    for default_element in self.default_elements['elements']:
-                        if element['name'] == default_element['name']:
-                            if element['time_from_last_replace']/3600 > default_element['working_time']:
-                                self.send_message(element['name'])
-                elements['number_cleaning'] = history.count
-                self.rewrite_yaml(path=f"{self.path}/data/cleaning_info.yaml", data=elements)
-
+        self.substrate.subscribe_block_headers(self.subscription_handler)
 
 if __name__ == '__main__':
-    ElementsMonitoring().spin()
-        
+    RobonomicsControl().spin() 

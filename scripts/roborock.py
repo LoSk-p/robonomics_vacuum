@@ -5,6 +5,7 @@ from miio import RoborockVacuum, VacuumStatus
 from std_msgs.msg import String
 from robonomics_vacuum.msg import RoborockStatus
 from robonomics_vacuum.srv import Command
+import time
 
 class Roborock:
     def __init__(self) -> None:
@@ -25,8 +26,13 @@ class Roborock:
         try:
             response = self.vacuum.start()
             if response == ['OK']:
-                rospy.loginfo(f"Cleaning started")
-                return True
+                time.sleep(1)
+                if self.vacuum.status().state == "Cleaning":
+                    rospy.loginfo(f"Cleaning started")
+                    return True
+                else:
+                    rospy.logerr(f"Status wasn't change")
+                    return False
             else:
                 rospy.logerr(f"Start failed with code {response}")
                 return False
@@ -38,8 +44,13 @@ class Roborock:
         try:
             response = self.vacuum.pause()
             if response == ['OK']:
-                rospy.loginfo(f"Cleaning paused")
-                return True
+                time.sleep(1)
+                if self.vacuum.status().state == "Paused":
+                    rospy.loginfo(f"Cleaning paused")
+                    return True
+                else:
+                    rospy.logerr(f"Status wasn't change")
+                    return False
             else:
                 rospy.logerr(f"Pause failed with code {response}")
                 return False
@@ -51,8 +62,13 @@ class Roborock:
         try:
             response = self.vacuum.home()
             if response == ['OK']:
-                rospy.loginfo(f"Returning to base started")
-                return True
+                time.sleep(1)
+                if self.vacuum.status().state == "Returning home":
+                    rospy.loginfo(f"Returning home started")
+                    return True
+                else:
+                    rospy.logerr(f"Status wasn't change")
+                    return False
             else:
                 rospy.logerr(f"Returning to base failed with code {response}")
                 return False
