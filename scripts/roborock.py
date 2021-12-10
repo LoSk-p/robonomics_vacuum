@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from include.robonomics_vacuum.utils import write_datalog
 import rospy
 from miio import RoborockVacuum, VacuumStatus
 from robonomics_vacuum.msg import RoborockStatus
