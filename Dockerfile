@@ -1,7 +1,6 @@
 FROM ros:melodic-ros-base-bionic
 WORKDIR /root/vacuum_ws/src/robonomics_vacuum
 COPY config/config.yaml config/config.yaml
-COPY data/cleaning_info.yaml data/cleaning_info.yaml
 ADD include include
 ADD launch launch
 ADD msg msg
