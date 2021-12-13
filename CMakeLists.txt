@@ -106,7 +106,6 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES robonomics_vacuum
   CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
-  DEPENDS system_lib
 )
 
 ###########

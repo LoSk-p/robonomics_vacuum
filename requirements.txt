@@ -1,0 +1,4 @@
+pyyaml==5.4.1
+substrate-interface==1.1.1
+python-miio==0.5.9
+rospkg==1.2.9
